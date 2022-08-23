@@ -12,6 +12,7 @@
 ## Table of Contents
 
 * [Changelog](#changelog)
+  * [Releases v1.1.0](#releases-v110)
   * [Releases v1.0.0](#releases-v100)
 
 ---
@@ -19,6 +20,10 @@
 
 ## Changelog
 
+
+### Releases v1.1.0
+
+1. Fix missing code for Timer3 and Timer4
 
 ### Releases v1.0.0
 

@@ -12,11 +12,12 @@
   Therefore, their executions are not blocked by bad-behaving functions / tasks.
   This important feature is absolutely necessary for mission-critical tasks.
 
-  Version: 1.0.0
+  Version: 1.1.0
 
   Version Modified By   Date      Comments
   ------- -----------  ---------- -----------
   1.0.0   K Hoang      22/08/2022 Initial coding for AVR ATmega164, ATmega324, ATmega644, ATmega1284 with MightyCore
+  1.1.0   K Hoang      22/08/2022 Fix missing code for Timer3 and Timer4
 ****************************************************************************************************************************/
 
 #pragma once
@@ -115,13 +116,13 @@
 #include "TimerInterrupt_Generic_Debug.h"
 
 #ifndef ATMEGA_TIMER_INTERRUPT_VERSION
-  #define ATMEGA_TIMER_INTERRUPT_VERSION           "ATmega_TimerInterrupt v1.0.0"
+  #define ATMEGA_TIMER_INTERRUPT_VERSION           "ATmega_TimerInterrupt v1.1.0"
   
   #define ATMEGA_TIMER_INTERRUPT_VERSION_MAJOR     1
-  #define ATMEGA_TIMER_INTERRUPT_VERSION_MINOR     0
+  #define ATMEGA_TIMER_INTERRUPT_VERSION_MINOR     1
   #define ATMEGA_TIMER_INTERRUPT_VERSION_PATCH     0
 
-  #define ATMEGA_TIMER_INTERRUPT_VERSION_INT      1000000
+  #define ATMEGA_TIMER_INTERRUPT_VERSION_INT      1001000
 #endif
 
 #include <avr/interrupt.h>

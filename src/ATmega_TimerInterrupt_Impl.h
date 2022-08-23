@@ -12,11 +12,12 @@
   Therefore, their executions are not blocked by bad-behaving functions / tasks.
   This important feature is absolutely necessary for mission-critical tasks.
 
-  Version: 1.0.0
+  Version: 1.1.0
 
   Version Modified By   Date      Comments
   ------- -----------  ---------- -----------
   1.0.0   K Hoang      22/08/2022 Initial coding for AVR ATmega164, ATmega324, ATmega644, ATmega1284 with MightyCore
+  1.1.0   K Hoang      22/08/2022 Fix missing code for Timer3 and Timer4
 ****************************************************************************************************************************/
 
 #pragma once
@@ -68,6 +69,37 @@ void ATmega_TimerInterrupt::init(int8_t timer)
       bitWrite(TCCR2B, CS20, 1);
 
       TISR_LOGWARN(F("T2"));
+      
+      break;
+    #endif
+    
+    #if defined(TCCR3A) && defined(TCCR3B) &&  defined(TIMSK3)
+    case 3:
+      // 16 bit timer
+      TCCR3A = 0;
+      TCCR3B = 0;
+      bitWrite(TCCR3B, WGM32, 1);
+      bitWrite(TCCR3B, CS30, 1);
+
+      TISR_LOGWARN(F("T3"));
+      
+      break;
+    #endif  
+
+    #if defined(TCCR4A) && defined(TCCR4B) &&  defined(TIMSK4)
+    case 4:
+      // 16 bit timer
+      TCCR4A = 0;
+      TCCR4B = 0;
+      #if defined(WGM42)
+        bitWrite(TCCR4B, WGM42, 1);
+      #elif defined(CS43)
+        // TODO this may not be correct
+        bitWrite(TCCR4B, CS43, 1);
+      #endif
+      bitWrite(TCCR4B, CS40, 1);
+
+      TISR_LOGWARN(F("T4"));
       
       break;
     #endif
@@ -136,16 +168,6 @@ void ATmega_TimerInterrupt::set_OCR()
       _OCRValueRemaining -= _OCRValueToUse;
 
       bitWrite(TIMSK4, OCIE4A, 1);
-      break;
-#endif
-
-#if defined(OCR5A) && defined(TIMSK5) && defined(OCIE5A)
-    case 5:
-      _OCRValueToUse = min(MAX_COUNT_16BIT, _OCRValueRemaining);
-      OCR5A = _OCRValueToUse;
-      _OCRValueRemaining -= _OCRValueToUse;
-
-      bitWrite(TIMSK5, OCIE5A, 1);
       break;
 #endif
   }
@@ -326,6 +348,16 @@ bool ATmega_TimerInterrupt::setFrequency(float frequency, timer_callback_p callb
       TISR_LOGWARN1(F("TCCR1B ="), TCCR1B);
     }
     #endif
+    
+    #if defined(TCCR3B)
+    else if (_timer == 3)
+      TCCR3B = (TCCR3B & andMask) | _prescalerIndex;   //prescalarbits;
+    #endif
+    
+    #if defined(TCCR4B)
+    else if (_timer == 4)
+      TCCR4B = (TCCR4B & andMask) | _prescalerIndex;   //prescalarbits;
+    #endif
              
     // Set the OCR for the given timer,
     // set the toggle count,
@@ -378,15 +410,6 @@ void ATmega_TimerInterrupt::detachInterrupt(void)
       bitWrite(TIMSK4, OCIE4A, 0);
 
       TISR_LOGWARN(F("Disable T4"));
-            
-      break;
-#endif
-
-#if defined(TIMSK5) && defined(OCIE5A)
-    case 5:
-      bitWrite(TIMSK5, OCIE5A, 0);
-
-      TISR_LOGWARN(F("Disable T5"));
             
       break;
 #endif
@@ -449,15 +472,6 @@ void ATmega_TimerInterrupt::reattachInterrupt(unsigned long duration)
             
       break;
 #endif
-
-#if defined(TIMSK5) && defined(OCIE5A)
-    case 5:
-      bitWrite(TIMSK5, OCIE5A, 1);
-
-      TISR_LOGWARN(F("Enable T5"));
-            
-      break;
-#endif
   }
   
   //sei();//allow interrupts
@@ -490,6 +504,16 @@ void ATmega_TimerInterrupt::pauseTimer(void)
     TISR_LOGWARN1(F("TCCR1B ="), TCCR1B);
   }
   #endif
+  
+  #if defined(TCCR3B)
+  else if (_timer == 3)
+    TCCR3B = (TCCR3B & andMask);
+  #endif
+  
+  #if defined(TCCR4B)
+  else if (_timer == 4)
+    TCCR4B = (TCCR4B & andMask);
+  #endif
 }
 
 // Just reconnect clock source, continue from the current count
@@ -517,8 +541,19 @@ void ATmega_TimerInterrupt::resumeTimer(void)
     TISR_LOGWARN1(F("TCCR1B ="), TCCR1B); 
   }
   #endif
+  
+  #if defined(TCCR3B)
+  else if (_timer == 3)
+    TCCR3B = (TCCR3B & andMask) | _prescalerIndex;   //prescalarbits;
+  #endif
+  
+  #if defined(TCCR4B)
+  else if (_timer == 4)
+    TCCR4B = (TCCR4B & andMask) | _prescalerIndex;   //prescalarbits;
+  #endif
 }
 
+//////////////////////////////////////////////
 
 #if USE_TIMER_1 
   #ifndef TIMER1_INSTANTIATED
