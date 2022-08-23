@@ -223,9 +223,11 @@ In the Arduino world, the **tone() function uses Timer2**.
 
 Before using any Timer, you have to make sure the **Timer has not been used by any other purpose**
 
-**Timer1 and Timer2 are supported for ATmega164(A/P), ATmega324(A/P/PA), ATmega644(A/P)**
-**Timer1, Timer2 and Timer3 are supported for ATmega1284(P)**
-**Timer1, Timer2, Timer3 and Timer4 are supported for ATmega324PB, which is not yet supported by MightyCore v2.1.3**
+- **Timer1 and Timer2 are supported for ATmega164(A/P), ATmega324(A/P/PA), ATmega644(A/P)**
+
+- **Timer1, Timer2 and Timer3 are supported for ATmega1284(P)**
+
+- **Timer1, Timer2, Timer3 and Timer4 are supported for ATmega324PB, which is not yet supported by MightyCore v2.1.3**
 
 
 ---
