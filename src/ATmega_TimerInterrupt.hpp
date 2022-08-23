@@ -435,10 +435,10 @@ class ATmega_TimerInterrupt
 
 #if !defined(USE_TIMER_3)
   #define USE_TIMER_3     false
-#elif ( USE_TIMER_3 && ( TIMER_INTERRUPT_USING_ATMEGA_1284 ) )
-  #warning Timer3 (16-bit) is OK to use for ATMEGA_1284(P)
+#elif ( USE_TIMER_3 && ( TIMER_INTERRUPT_USING_ATMEGA_1284 || TIMER_INTERRUPT_USING_ATMEGA_324PB ) )
+  #warning Timer3 (16-bit) is OK to use for ATMEGA_1284(P) or ATMEGA_324PB
 #elif USE_TIMER_3
-  #error Timer3 is only available for ATMEGA_1284(P)
+  #error Timer3 is only available for ATMEGA_1284(P) and ATMEGA_324PB
 #endif
 
 #if !defined(USE_TIMER_4)

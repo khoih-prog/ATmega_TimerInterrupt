@@ -653,7 +653,7 @@ void ATmega_TimerInterrupt::resumeTimer(void)
   #endif  //#ifndef TIMER2_INSTANTIATED
 #endif    //#if USE_TIMER_2
 
-#if (TIMER_INTERRUPT_USING_ATMEGA_1284)
+#if ( TIMER_INTERRUPT_USING_ATMEGA_1284 || TIMER_INTERRUPT_USING_ATMEGA_324PB )
 
   // Pre-instatiate
   #if USE_TIMER_3
@@ -705,7 +705,7 @@ void ATmega_TimerInterrupt::resumeTimer(void)
     #endif  //#ifndef TIMER3_INSTANTIATED
   #endif    //#if USE_TIMER_3
 
-#endif      //#if (TIMER_INTERRUPT_USING_ATMEGA_1284)
+#endif      //#if ( TIMER_INTERRUPT_USING_ATMEGA_1284 || TIMER_INTERRUPT_USING_ATMEGA_324PB )
 
 #if (TIMER_INTERRUPT_USING_ATMEGA_324PB)
 
