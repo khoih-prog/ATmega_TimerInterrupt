@@ -162,7 +162,6 @@ void ATmega_TimerInterrupt::set_OCR()
 #if defined(OCR4A) && defined(TIMSK4) && defined(OCIE4A)
     case 4:
     
- 
       _OCRValueToUse = min(MAX_COUNT_16BIT, _OCRValueRemaining);     
       OCR4A = _OCRValueToUse;
       _OCRValueRemaining -= _OCRValueToUse;
