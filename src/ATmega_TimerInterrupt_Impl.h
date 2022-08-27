@@ -12,12 +12,13 @@
   Therefore, their executions are not blocked by bad-behaving functions / tasks.
   This important feature is absolutely necessary for mission-critical tasks.
 
-  Version: 1.1.0
+  Version: 1.1.1
 
   Version Modified By   Date      Comments
   ------- -----------  ---------- -----------
   1.0.0   K Hoang      22/08/2022 Initial coding for AVR ATmega164, ATmega324, ATmega644, ATmega1284 with MightyCore
   1.1.0   K Hoang      22/08/2022 Fix missing code for Timer3 and Timer4
+  1.1.1   K Hoang      27/08/2022 Fix bug and optimize code in examples
 ****************************************************************************************************************************/
 
 #pragma once
@@ -51,8 +52,6 @@ void ATmega_TimerInterrupt::init(int8_t timer)
       bitWrite(TCCR1B, WGM12, 1);
       // No scaling now
       bitWrite(TCCR1B, CS10, 1);
-
-      TISR_LOGWARN(F("T1"));
       
       break;
     #endif
@@ -67,8 +66,6 @@ void ATmega_TimerInterrupt::init(int8_t timer)
       bitWrite(TCCR2A, WGM21, 1);
       // No scaling now
       bitWrite(TCCR2B, CS20, 1);
-
-      TISR_LOGWARN(F("T2"));
       
       break;
     #endif
@@ -80,8 +77,6 @@ void ATmega_TimerInterrupt::init(int8_t timer)
       TCCR3B = 0;
       bitWrite(TCCR3B, WGM32, 1);
       bitWrite(TCCR3B, CS30, 1);
-
-      TISR_LOGWARN(F("T3"));
       
       break;
     #endif  
@@ -98,8 +93,6 @@ void ATmega_TimerInterrupt::init(int8_t timer)
         bitWrite(TCCR4B, CS43, 1);
       #endif
       bitWrite(TCCR4B, CS40, 1);
-
-      TISR_LOGWARN(F("T4"));
       
       break;
     #endif
@@ -199,9 +192,6 @@ bool ATmega_TimerInterrupt::setFrequency(float frequency, timer_callback_p callb
     if (duration > 0)
     {   
       _toggle_count = frequency * duration / 1000;
-
-      TISR_LOGWARN1(F("setFrequency => _toggle_count ="), _toggle_count);
-      TISR_LOGWARN3(F("Frequency ="), frequency, F(", duration ="), duration);
            
       if (_toggle_count < 1)
       {
@@ -233,10 +223,6 @@ bool ATmega_TimerInterrupt::setFrequency(float frequency, timer_callback_p callb
       {
         OCRValue = F_CPU / (frequency * prescalerDiv[prescalerIndex]) - 1;
   
-        TISR_LOGWARN1(F("Freq * 1000 ="), frequency * 1000);
-        TISR_LOGWARN3(F("F_CPU ="), F_CPU, F(", preScalerDiv ="), prescalerDiv[prescalerIndex]);
-        TISR_LOGWARN3(F("OCR ="), OCRValue, F(", preScalerIndex ="), prescalerIndex);
-
         // We use very large _OCRValue now, and every time timer ISR activates, we deduct min(MAX_COUNT_16BIT, _OCRValueRemaining) from _OCRValueRemaining
         // So that we can create very long timer, even if the counter is only 16-bit.
         // Use very high frequency (OCRValue / MAX_COUNT_16BIT) around 16 * 1024 to achieve higher accuracy
@@ -246,10 +232,7 @@ bool ATmega_TimerInterrupt::setFrequency(float frequency, timer_callback_p callb
           _OCRValue           = OCRValue;
           _OCRValueRemaining  = OCRValue;
           _prescalerIndex = prescalerIndex;
-  
-          TISR_LOGWARN1(F("OK in loop => _OCR ="), _OCRValue);
-          TISR_LOGWARN3(F("_preScalerIndex ="), _prescalerIndex, F(", preScalerDiv ="), prescalerDiv[_prescalerIndex]);
-             
+               
           isSuccess = true;
          
           break;
@@ -262,9 +245,6 @@ bool ATmega_TimerInterrupt::setFrequency(float frequency, timer_callback_p callb
         _OCRValue           = OCRValue;
         _OCRValueRemaining  = OCRValue;
         _prescalerIndex = PRESCALER_1024;
-  
-        TISR_LOGWARN1(F("OK out loop => _OCR ="), _OCRValue);
-        TISR_LOGWARN3(F("_preScalerIndex ="), _prescalerIndex, F(", preScalerDiv ="), prescalerDiv[_prescalerIndex]);
       }            
     }
     else
@@ -284,9 +264,6 @@ bool ATmega_TimerInterrupt::setFrequency(float frequency, timer_callback_p callb
       {
         OCRValue = F_CPU / (frequency * prescalerDivT2[prescalerIndex]) - 1;
   
-        TISR_LOGWARN3(F("F_CPU ="), F_CPU, F(", preScalerDiv ="), prescalerDivT2[prescalerIndex]);
-        TISR_LOGWARN3(F("OCR2 ="), OCRValue, F(", preScalerIndex ="), prescalerIndex);
-
         // We use very large _OCRValue now, and every time timer ISR activates, we deduct min(MAX_COUNT_8BIT, _OCRValue) from _OCRValue
         // to create very long timer, even if the counter is only 16-bit.
         // Use very high frequency (OCRValue / MAX_COUNT_8BIT) around 16 * 1024 to achieve higher accuracy
@@ -296,10 +273,7 @@ bool ATmega_TimerInterrupt::setFrequency(float frequency, timer_callback_p callb
           _OCRValueRemaining  = OCRValue;
           // same as prescalarbits
           _prescalerIndex = prescalerIndex;
-  
-          TISR_LOGWARN1(F("OK in loop => _OCR ="), _OCRValue);
-          TISR_LOGWARN3(F("_preScalerIndex ="), _prescalerIndex, F(", preScalerDiv ="), prescalerDivT2[_prescalerIndex]);
-          
+           
           isSuccess = true;
           
           break;
@@ -313,9 +287,6 @@ bool ATmega_TimerInterrupt::setFrequency(float frequency, timer_callback_p callb
         _OCRValueRemaining  = OCRValue;
         // same as prescalarbits
         _prescalerIndex = T2_PRESCALER_1024;
-  
-        TISR_LOGWARN1(F("OK out loop => _OCR ="), _OCRValue);
-        TISR_LOGWARN3(F("_preScalerIndex ="), _prescalerIndex, F(", preScalerDiv ="), prescalerDivT2[_prescalerIndex]);
       } 
     }
 
@@ -332,9 +303,7 @@ bool ATmega_TimerInterrupt::setFrequency(float frequency, timer_callback_p callb
     #if defined(TCCR2B)
     if (_timer == 2)
     {
-      TCCR2B = (TCCR2B & andMask) | _prescalerIndex;   //prescalarbits;
-      
-      TISR_LOGWARN1(F("TCCR2B ="), TCCR2B);
+      TCCR2B = (TCCR2B & andMask) | _prescalerIndex;   //prescalarbits;     
     }
     #endif
 
@@ -343,8 +312,6 @@ bool ATmega_TimerInterrupt::setFrequency(float frequency, timer_callback_p callb
     else if (_timer == 1)
     {
       TCCR1B = (TCCR1B & andMask) | _prescalerIndex;   //prescalarbits;
-      
-      TISR_LOGWARN1(F("TCCR1B ="), TCCR1B);
     }
     #endif
     
@@ -380,8 +347,6 @@ void ATmega_TimerInterrupt::detachInterrupt(void)
     #if defined(TIMSK1) && defined(OCIE1A)
     case 1:
       bitWrite(TIMSK1, OCIE1A, 0);
- 
-      TISR_LOGWARN(F("Disable T1"));
        
       break;
     #endif
@@ -390,16 +355,12 @@ void ATmega_TimerInterrupt::detachInterrupt(void)
       #if defined(TIMSK2) && defined(OCIE2A)
         bitWrite(TIMSK2, OCIE2A, 0); // disable interrupt
       #endif
-      
-      TISR_LOGWARN(F("Disable T2"));
             
       break;
 
 #if defined(TIMSK3) && defined(OCIE3A)
     case 3:
       bitWrite(TIMSK3, OCIE3A, 0);
-      
-      TISR_LOGWARN(F("Disable T3"));
             
       break;
 #endif
@@ -407,8 +368,6 @@ void ATmega_TimerInterrupt::detachInterrupt(void)
 #if defined(TIMSK4) && defined(OCIE4A)
     case 4:
       bitWrite(TIMSK4, OCIE4A, 0);
-
-      TISR_LOGWARN(F("Disable T4"));
             
       break;
 #endif
@@ -439,8 +398,6 @@ void ATmega_TimerInterrupt::reattachInterrupt(unsigned long duration)
 #if defined(TIMSK1) && defined(OCIE1A)
     case 1:
       bitWrite(TIMSK1, OCIE1A, 1);
-
-      TISR_LOGWARN(F("Enable T1"));
        
       break;
 #endif
@@ -449,16 +406,12 @@ void ATmega_TimerInterrupt::reattachInterrupt(unsigned long duration)
       #if defined(TIMSK2) && defined(OCIE2A)
         bitWrite(TIMSK2, OCIE2A, 1); // enable interrupt
       #endif
-
-      TISR_LOGWARN(F("Enable T2"));
             
       break;
 
 #if defined(TIMSK3) && defined(OCIE3A)
     case 3:
       bitWrite(TIMSK3, OCIE3A, 1);
-      
-      TISR_LOGWARN(F("Enable T3"));
             
       break;
 #endif
@@ -466,8 +419,6 @@ void ATmega_TimerInterrupt::reattachInterrupt(unsigned long duration)
 #if defined(TIMSK4) && defined(OCIE4A)
     case 4:
       bitWrite(TIMSK4, OCIE4A, 1);
-
-      TISR_LOGWARN(F("Enable T4"));
             
       break;
 #endif
@@ -489,8 +440,6 @@ void ATmega_TimerInterrupt::pauseTimer(void)
   if (_timer == 2)
   {
     TCCR2B = (TCCR2B & andMask);
-
-    TISR_LOGWARN1(F("TCCR2B ="), TCCR2B);
   }
   #endif
   
@@ -499,8 +448,6 @@ void ATmega_TimerInterrupt::pauseTimer(void)
   else if (_timer == 1)
   {
     TCCR1B = (TCCR1B & andMask);
-    
-    TISR_LOGWARN1(F("TCCR1B ="), TCCR1B);
   }
   #endif
   
@@ -526,8 +473,6 @@ void ATmega_TimerInterrupt::resumeTimer(void)
   if (_timer == 2)
   {
     TCCR2B = (TCCR2B & andMask) | _prescalerIndex;   //prescalarbits;
-
-    TISR_LOGWARN1(F("TCCR2B ="), TCCR2B);
   }
   #endif
 
@@ -536,8 +481,6 @@ void ATmega_TimerInterrupt::resumeTimer(void)
   else if (_timer == 1)
   {
     TCCR1B = (TCCR1B & andMask) | _prescalerIndex;   //prescalarbits;
-    
-    TISR_LOGWARN1(F("TCCR1B ="), TCCR1B); 
   }
   #endif
   
@@ -572,9 +515,7 @@ void ATmega_TimerInterrupt::resumeTimer(void)
         if (countLocal != 0)
         {
           if (ITimer1.checkTimerDone())
-          {
-            TISR_LOGDEBUG3(("T1 callback, _OCRValueRemaining ="), ITimer1.get_OCRValueRemaining(), (", millis ="), millis());
-            
+          {            
             ITimer1.callback();
 
             if (ITimer1.get_OCRValue() > MAX_COUNT_16BIT)
@@ -596,8 +537,6 @@ void ATmega_TimerInterrupt::resumeTimer(void)
         }
         else
         {
-          TISR_LOGWARN(("T1 done"));
-          
           ITimer1.detachInterrupt();
         }
       }
@@ -621,8 +560,6 @@ void ATmega_TimerInterrupt::resumeTimer(void)
         {
           if (ITimer2.checkTimerDone())
           {
-            TISR_LOGDEBUG3(("T2 callback, _OCRValueRemaining ="), ITimer2.get_OCRValueRemaining(), (", millis ="), millis());
-             
             ITimer2.callback();
             
             if (ITimer2.get_OCRValue() > MAX_COUNT_8BIT)
@@ -644,8 +581,6 @@ void ATmega_TimerInterrupt::resumeTimer(void)
         }    
         else
         {
-          TISR_LOGWARN(("T2 done"));
-          
           ITimer2.detachInterrupt();
         }
       }
@@ -672,8 +607,6 @@ void ATmega_TimerInterrupt::resumeTimer(void)
           {
             if (ITimer3.checkTimerDone())
             { 
-              TISR_LOGDEBUG3(("T3 callback, _OCRValueRemaining ="), ITimer3.get_OCRValueRemaining(), (", millis ="), millis());
-              
               ITimer3.callback();
 
               if (ITimer3.get_OCRValue() > MAX_COUNT_16BIT)
@@ -695,8 +628,6 @@ void ATmega_TimerInterrupt::resumeTimer(void)
           }
           else
           {
-            TISR_LOGWARN(("T3 done"));
-            
             ITimer3.detachInterrupt();
           }
         }
@@ -725,8 +656,6 @@ void ATmega_TimerInterrupt::resumeTimer(void)
           {
             if (ITimer4.checkTimerDone())
             {  
-              TISR_LOGDEBUG3(("T4 callback, _OCRValueRemaining ="), ITimer4.get_OCRValueRemaining(), (", millis ="), millis());
-              
               ITimer4.callback();
               
               if (ITimer4.get_OCRValue() > MAX_COUNT_16BIT)
@@ -748,8 +677,6 @@ void ATmega_TimerInterrupt::resumeTimer(void)
           }
           else
           {
-            TISR_LOGWARN(("T4 done"));
-            
             ITimer4.detachInterrupt();
           }
         }

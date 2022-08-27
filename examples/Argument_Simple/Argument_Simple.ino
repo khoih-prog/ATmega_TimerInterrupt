@@ -27,7 +27,7 @@
 // _TIMERINTERRUPT_LOGLEVEL_ from 0 to 4
 // Don't define _TIMERINTERRUPT_LOGLEVEL_ > 0. Only for special ISR debugging only. Can hang the system.
 #define TIMER_INTERRUPT_DEBUG         0
-#define _TIMERINTERRUPT_LOGLEVEL_     3
+#define _TIMERINTERRUPT_LOGLEVEL_     4
 
 #define USE_TIMER_1     true
 
@@ -38,12 +38,24 @@
 // TIMER_4 Only valid for ATmega324PB, not ready in core yet
 #define USE_TIMER_4     false
 
-#if (USE_TIMER_2)
-  #warning Using Timer1 and Timer2
-#elif (USE_TIMER_3)
-  #warning Using Timer1 and Timer3
-#elif (USE_TIMER_4)
-  #warning Using Timer1 and Timer4
+#if USE_TIMER_2
+  #define CurrentTimer   ITimer2
+#elif USE_TIMER_3
+  #define CurrentTimer   ITimer3
+#elif USE_TIMER_4
+  #define CurrentTimer   ITimer4
+#else
+  #error You must select one Timer  
+#endif
+
+#if (_TIMERINTERRUPT_LOGLEVEL_ > 3)
+  #if (USE_TIMER_2)
+    #warning Using Timer1 and Timer2
+  #elif (USE_TIMER_3)
+    #warning Using Timer1 and Timer3
+  #elif (USE_TIMER_4)
+    #warning Using Timer1 and Timer4
+  #endif
 #endif
 
 // To be included only in main(), .ino with setup() to avoid `Multiple Definitions` Linker Error
@@ -109,7 +121,9 @@ void setup()
   // Timer0 is already used for micros(), millis(), delay(), etc and can't be used
   // Select Timer 1-2
   // Timer 2 is 8-bit timer, only for higher frequency
-  
+
+#if USE_TIMER_1
+
   ITimer1.init();
 
   // Using ATmega324 with 16MHz CPU clock ,
@@ -118,7 +132,7 @@ void setup()
 
   if (ITimer1.attachInterruptInterval(TIMER1_INTERVAL_MS, TimerHandler1, outputPin1))
   {
-    Serial.print(F("Starting  ITimer1 OK, millis() = ")); Serial.println(millis());
+    Serial.print(F("Starting ITimer1 OK, millis() = ")); Serial.println(millis());
 
 #if (TIMER_INTERRUPT_DEBUG > 1)    
     Serial.print(F("OutputPin1 = ")); Serial.print(outputPin1);
@@ -127,14 +141,17 @@ void setup()
   }
   else
     Serial.println(F("Can't set ITimer1. Select another freq. or timer"));
+    
+#endif
 
-#if USE_TIMER_2
+  ///////////////////////////////////////////////
   
-  ITimer2.init();
+  // Init second timer
+  CurrentTimer.init();
 
-  if (ITimer2.attachInterruptInterval(TIMER_INTERVAL_MS, TimerHandler, outputPin))
+  if (CurrentTimer.attachInterruptInterval(TIMER_INTERVAL_MS, TimerHandler, outputPin))
   {
-    Serial.print(F("Starting  ITimer2 OK, millis() = ")); Serial.println(millis());
+    Serial.print(F("Starting ITimer OK, millis() = ")); Serial.println(millis());
 
 #if (TIMER_INTERRUPT_DEBUG > 1)    
     Serial.print(F("OutputPin = ")); Serial.print(outputPin);
@@ -142,25 +159,7 @@ void setup()
 #endif    
   }
   else
-    Serial.println(F("Can't set ITimer2. Select another freq. or timer"));
-
-#elif USE_TIMER_3
-
-  ITimer3.init();
-
-  if (ITimer3.attachInterruptInterval(TIMER_INTERVAL_MS, TimerHandler, outputPin))
-  {
-    Serial.print(F("Starting  ITimer3 OK, millis() = ")); Serial.println(millis());
-
-#if (TIMER_INTERRUPT_DEBUG > 1)    
-    Serial.print(F("OutputPin = ")); Serial.print(outputPin);
-    Serial.print(F(" address: ")); Serial.println((uint32_t) &outputPin );
-#endif    
-  }
-  else
-    Serial.println(F("Can't set ITimer3. Select another freq. or timer"));
-
-#endif 
+    Serial.println(F("Can't set ITimer. Select another freq. or timer"));
 }
 
 void loop()

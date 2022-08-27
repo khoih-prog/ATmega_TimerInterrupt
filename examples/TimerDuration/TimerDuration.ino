@@ -38,12 +38,24 @@
 // TIMER_4 Only valid for ATmega324PB, not ready in core yet
 #define USE_TIMER_4     false
 
-#if (USE_TIMER_2)
-  #warning Using Timer1 and Timer2
-#elif (USE_TIMER_3)
-  #warning Using Timer1 and Timer3
-#elif (USE_TIMER_4)
-  #warning Using Timer1 and Timer4
+#if USE_TIMER_2
+  #define CurrentTimer   ITimer2
+#elif USE_TIMER_3
+  #define CurrentTimer   ITimer3
+#elif USE_TIMER_4
+  #define CurrentTimer   ITimer4
+#else
+  #error You must select one Timer  
+#endif
+
+#if (_TIMERINTERRUPT_LOGLEVEL_ > 3)
+  #if (USE_TIMER_2)
+    #warning Using Timer1 and Timer2
+  #elif (USE_TIMER_3)
+    #warning Using Timer1 and Timer3
+  #elif (USE_TIMER_4)
+    #warning Using Timer1 and Timer4
+  #endif
 #endif
 
 // To be included only in main(), .ino with setup() to avoid `Multiple Definitions` Linker Error
@@ -59,10 +71,6 @@ void TimerHandler1(unsigned int outputPin = LED_BUILTIN)
 {
   static bool toggle1 = false;
 
-#if (TIMER_INTERRUPT_DEBUG > 1)
-  Serial.print("ITimer1 called, millis() = "); Serial.println(millis());
-#endif
-
   //timer interrupt toggles pin LED_BUILTIN
   digitalWrite(outputPin, toggle1);
   toggle1 = !toggle1;
@@ -70,26 +78,14 @@ void TimerHandler1(unsigned int outputPin = LED_BUILTIN)
 
 #endif
 
-#if (USE_TIMER_2 || USE_TIMER_3)
-
 void TimerHandler(unsigned int outputPin = LED_BUILTIN)
 {
   static bool toggle = false;
-
-#if (TIMER_INTERRUPT_DEBUG > 1)
-  #if USE_TIMER_2
-    Serial.print("ITimer2 called, millis() = ");
-  #endif
-
-   Serial.println(millis());
-#endif
 
   //timer interrupt toggles outputPin
   digitalWrite(outputPin, toggle);
   toggle = !toggle;
 }
-
-#endif
 
 unsigned int outputPin1 = LED_BUILTIN;
 unsigned int outputPin  = A0;
@@ -128,36 +124,29 @@ void setup()
 
   if (ITimer1.attachInterruptInterval(TIMER1_INTERVAL_MS, TimerHandler1, outputPin1, TIMER1_DURATION_MS))
   {
-    Serial.print(F("Starting  ITimer1 OK, millis() = ")); Serial.println(millis());
+    Serial.print(F("Starting ITimer1 OK, millis() = ")); Serial.println(millis());
   }
   else
     Serial.println(F("Can't set ITimer1. Select another freq. or timer"));
 
 #endif
 
-#if USE_TIMER_2
+  ///////////////////////////////////////////////
+  
+  // Init second timer
+  CurrentTimer.init();
 
-  ITimer2.init();
-
-  if (ITimer2.attachInterruptInterval(TIMER_INTERVAL_MS, TimerHandler, outputPin, TIMER_DURATION_MS))
+  if (CurrentTimer.attachInterruptInterval(TIMER_INTERVAL_MS, TimerHandler, outputPin))
   {
-    Serial.print(F("Starting  ITimer2 OK, millis() = ")); Serial.println(millis());
+    Serial.print(F("Starting ITimer OK, millis() = ")); Serial.println(millis());
+
+#if (TIMER_INTERRUPT_DEBUG > 1)    
+    Serial.print(F("OutputPin = ")); Serial.print(outputPin);
+    Serial.print(F(" address: ")); Serial.println((uint32_t) &outputPin );
+#endif    
   }
   else
-    Serial.println(F("Can't set ITimer2. Select another freq. or timer"));
-    
-#elif USE_TIMER_3
-
-  ITimer3.init();
-
-  if (ITimer3.attachInterruptInterval(TIMER_INTERVAL_MS, TimerHandler, outputPin, TIMER_DURATION_MS))
-  {
-    Serial.print(F("Starting  ITimer3 OK, millis() = ")); Serial.println(millis());
-  }
-  else
-    Serial.println(F("Can't set ITimer3. Select another freq. or timer"));
-    
-#endif
+    Serial.println(F("Can't set ITimer. Select another freq. or timer"));
 }
 
 void loop()

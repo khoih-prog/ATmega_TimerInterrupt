@@ -43,14 +43,28 @@
 // TIMER_4 Only valid for ATmega324PB, not ready in core yet
 #define USE_TIMER_4     false
 
-#if (USE_TIMER_1)
-  #warning Using Timer1
-#elif (USE_TIMER_2)
-  #warning Using Timer2
-#elif (USE_TIMER_3)
-  #warning Using Timer3
-#elif (USE_TIMER_4)
-  #warning Using Timer4
+#if USE_TIMER_1
+  #define CurrentTimer   ITimer1
+#elif USE_TIMER_2
+  #define CurrentTimer   ITimer2
+#elif USE_TIMER_3
+  #define CurrentTimer   ITimer3
+#elif USE_TIMER_4
+  #define CurrentTimer   ITimer4
+#else
+  #error You must select one Timer  
+#endif
+
+#if (_TIMERINTERRUPT_LOGLEVEL_ > 3)
+  #if (USE_TIMER_1)
+    #warning Using Timer1  
+  #elif (USE_TIMER_2)
+    #warning Using Timer2
+  #elif (USE_TIMER_3)
+    #warning Using Timer3
+  #elif (USE_TIMER_4)
+    #warning Using Timer4
+  #endif
 #endif
 
 // Can be included in many files without `Multiple Definitions` Linker Error

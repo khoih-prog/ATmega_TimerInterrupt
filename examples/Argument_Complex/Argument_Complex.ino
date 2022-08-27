@@ -37,14 +37,28 @@
 // TIMER_4 Only valid for ATmega324PB, not ready in core yet
 #define USE_TIMER_4     false
 
-#if (USE_TIMER_1)
-  #warning Using Timer1
-#elif (USE_TIMER_2)
-  #warning Using Timer2
-#elif (USE_TIMER_3)
-  #warning Using Timer3
-#elif (USE_TIMER_4)
-  #warning Using Timer4
+#if USE_TIMER_1
+  #define CurrentTimer   ITimer1
+#elif USE_TIMER_2
+  #define CurrentTimer   ITimer2
+#elif USE_TIMER_3
+  #define CurrentTimer   ITimer3
+#elif USE_TIMER_4
+  #define CurrentTimer   ITimer4
+#else
+  #error You must select one Timer  
+#endif
+
+#if (_TIMERINTERRUPT_LOGLEVEL_ > 3)
+  #if (USE_TIMER_1)
+    #warning Using Timer1  
+  #elif (USE_TIMER_2)
+    #warning Using Timer2
+  #elif (USE_TIMER_3)
+    #warning Using Timer3
+  #elif (USE_TIMER_4)
+    #warning Using Timer4
+  #endif
 #endif
 
 // To be included only in main(), .ino with setup() to avoid `Multiple Definitions` Linker Error
@@ -106,52 +120,18 @@ void setup()
   // Select Timer 1-2
   // Timer 2 is 8-bit timer, only for higher frequency
   
-#if USE_TIMER_1
- 
-  ITimer1.init();
+  CurrentTimer.init();
 
   // Using ATmega324 with 16MHz CPU clock ,
   // For 16-bit timer 1, set frequency from 0.2385 to some KHz
   // For 8-bit timer 2 (prescaler up to 1024, set frequency from 61.5Hz to some KHz
 
-  if (ITimer1.attachInterruptInterval(TIMER_INTERVAL_MS, TimerHandler, (unsigned int) &myOutputPins))
+  if (CurrentTimer.attachInterruptInterval(TIMER_INTERVAL_MS, TimerHandler, (unsigned int) &myOutputPins))
   {
-    Serial.print(F("Starting  ITimer1 OK, millis() = ")); Serial.println(millis());
+    Serial.print(F("Starting ITimer OK, millis() = ")); Serial.println(millis());
   }
   else
-    Serial.println(F("Can't set ITimer1. Select another freq. or timer"));
-    
-#elif USE_TIMER_2
-
-  // Using ATmega324 with 16MHz CPU clock ,
-  // For 16-bit timer 1, set frequency from 0.2385 to some KHz
-  // For 8-bit timer 2 (prescaler up to 1024, set frequency from 61.5Hz to some KHz
-  ITimer2.init();
-
-  if (ITimer2.attachInterruptInterval(TIMER_INTERVAL_MS, TimerHandler))
-  {
-    Serial.print(F("Starting  ITimer2 OK, millis() = ")); Serial.println(millis());
-  }
-  else
-    Serial.println(F("Can't set ITimer2. Select another freq. or timer"));
-
-#elif USE_TIMER_3
-
-  ITimer3.init();
-
-  if (ITimer3.attachInterruptInterval(TIMER_INTERVAL_MS, TimerHandler, outputPin))
-  {
-    Serial.print(F("Starting  ITimer3 OK, millis() = ")); Serial.println(millis());
-
-#if (TIMER_INTERRUPT_DEBUG > 1)    
-    Serial.print(F("OutputPin = ")); Serial.print(outputPin);
-    Serial.print(F(" address: ")); Serial.println((uint32_t) &outputPin );
-#endif    
-  }
-  else
-    Serial.println(F("Can't set ITimer3. Select another freq. or timer"));
-
-#endif
+    Serial.println(F("Can't set ITimer. Select another freq. or timer"));
 }
 
 void loop()
