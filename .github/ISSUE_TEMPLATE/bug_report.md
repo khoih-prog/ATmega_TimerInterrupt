@@ -35,21 +35,23 @@ If applicable, add screenshots to help explain your problem.
 
 Please ensure to specify the following:
 
-* Arduino IDE version (e.g. 1.8.13) or Platform.io version
-* `MightyCore`Core Version (e.g. MightyCore core v2.1.3)
-* Board ATmega1284
+* Arduino IDE version (e.g. 1.8.19) or Platform.io version
+* `Arduino MightyCore` Core Version (e.g. Arduino MightyCore Core v2.1.3)
+* Board type (e.g. ATmega164, ATmega324, ATmega644, ATmega1284, etc.)
 * Contextual information (e.g. what you were trying to achieve)
 * Simplest possible steps to reproduce
 * Anything that might be relevant in your opinion, such as:
   * Operating system (Windows, Ubuntu, etc.) and the output of `uname -a`
   * Network configuration
-  
+
+---
+
 ### Example
 
 ```
 Arduino IDE version: 1.8.19
-MightyCore core v2.1.3
-Board ATmega1284
+Arduino MightyCore Core v2.1.3
+ATmega1284 with Optiboot
 OS: Ubuntu 20.04 LTS
 Linux xy-Inspiron-3593 5.15.0-46-generic #49~20.04.1-Ubuntu SMP Thu Aug 4 19:15:44 UTC 2022 x86_64 x86_64 x86_64 GNU/Linux
 
