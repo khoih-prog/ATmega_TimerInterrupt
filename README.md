@@ -131,7 +131,8 @@ The catch is your function is now part of an ISR (Interrupt Service Routine), an
 
 1. [`Arduino IDE 1.8.19+` for Arduino](https://www.arduino.cc/en/Main/Software)
 2. [`MCUdude MightyCore v2.1.3+`](https://github.com/MCUdude/MightyCore) for **ATmega164, ATmega324, ATmega644, ATmega1284**. Use Arduino Board Manager to install. [![Latest release](https://img.shields.io/github/release/MCUdude/MightyCore.svg)](https://github.com/MCUdude/MightyCore/releases/latest/)
-
+3. To use with certain example
+   - [`SimpleTimer library`](https://github.com/jfturcot/SimpleTimer) for [ISR_Timers_Array_Simple](examples/ISR_Timers_Array_Simple) and [ISR_16_Timers_Array_Complex](examples/ISR_16_Timers_Array_Complex) examples.
 
 ---
 ---
@@ -196,7 +197,7 @@ From [Arduino 101: Timers and Interrupts](https://www.robotshop.com/community/fo
 
 Timer0 is a 8-bit timer.
 
-In the Arduino world, **Timer0 is been used for the timer functions**, like delay(), millis() and micros(). If you change **Timer0** registers, this may influence the Arduino timer function. So you should know what you are doing.
+In the Arduino world, **Timer0 is used for the timer functions**, like delay(), millis() and micros(). If you change **Timer0** registers, this may influence the Arduino timer function. So you should know what you are doing.
 
 ### 2. Timer1:
 
@@ -281,7 +282,7 @@ void setup()
   
   // Interval in unsigned long millisecs
   if (ITimer.attachInterruptInterval(TIMER_INTERVAL_MS, TimerHandler))
-    Serial.println("Starting  ITimer OK, millis() = " + String(millis()));
+    Serial.println("Starting ITimer OK, millis() = " + String(millis()));
   else
     Serial.println("Can't set ITimer. Select another freq. or timer");
 }  
@@ -346,12 +347,24 @@ The 16 ISR_based Timers, designed for long timer intervals, only support using *
 // TIMER_4 Only valid for ATmega324PB, not ready in core yet
 #define USE_TIMER_4     false
 
-#if (USE_TIMER_2)
-  #warning Using Timer1 and Timer2
-#elif (USE_TIMER_3)
-  #warning Using Timer1 and Timer3
-#elif (USE_TIMER_4)
-  #warning Using Timer1 and Timer4
+#if USE_TIMER_2
+  #define CurrentTimer   ITimer2
+#elif USE_TIMER_3
+  #define CurrentTimer   ITimer3
+#elif USE_TIMER_4
+  #define CurrentTimer   ITimer4
+#else
+  #error You must select one Timer  
+#endif
+
+#if (_TIMERINTERRUPT_LOGLEVEL_ > 3)
+  #if (USE_TIMER_2)
+    #warning Using Timer1 and Timer2
+  #elif (USE_TIMER_3)
+    #warning Using Timer1 and Timer3
+  #elif (USE_TIMER_4)
+    #warning Using Timer1 and Timer4
+  #endif
 #endif
 
 // Init ISR_Timer
@@ -401,47 +414,18 @@ void setup()
 {
   ....
   
-#if USE_TIMER_1
-
-  ITimer1.init();
+	CurrentTimer.init();
 
   // Using ATmega324 with 16MHz CPU clock ,
   // For 16-bit timer 1, set frequency from 0.2385 to some KHz
   // For 8-bit timer 2 (prescaler up to 1024, set frequency from 61.5Hz to some KHz
 
-  if (ITimer1.attachInterruptInterval(TIMER_INTERVAL_MS, TimerHandler))
+  if (CurrentTimer.attachInterruptInterval(TIMER_INTERVAL_MS, TimerHandler))
   {
-    Serial.print(F("Starting  ITimer1 OK, millis() = ")); Serial.println(millis());
+    Serial.print(F("Starting ITimer OK, millis() = ")); Serial.println(millis());
   }
   else
-    Serial.println(F("Can't set ITimer1. Select another freq. or timer"));
-    
-#elif USE_TIMER_2
-
-  // Using ATmega324 with 16MHz CPU clock ,
-  // For 16-bit timer 1, set frequency from 0.2385 to some KHz
-  // For 8-bit timer 2 (prescaler up to 1024, set frequency from 61.5Hz to some KHz
-  ITimer2.init();
-
-  if (ITimer2.attachInterruptInterval(TIMER_INTERVAL_MS, TimerHandler))
-  {
-    Serial.print(F("Starting  ITimer2 OK, millis() = ")); Serial.println(millis());
-  }
-  else
-    Serial.println(F("Can't set ITimer2. Select another freq. or timer"));
-
-#elif USE_TIMER_3
-
-  ITimer3.init();
-
-  if (ITimer3.attachInterruptInterval(TIMER_INTERVAL_MS, TimerHandler))
-  {
-    Serial.print(F("Starting  ITimer3 OK, millis() = ")); Serial.println(millis());
-  }
-  else
-    Serial.println(F("Can't set ITimer3. Select another freq. or timer"));
-
-#endif
+    Serial.println(F("Can't set ITimer. Select another freq. or timer"));
 
   // Just to demonstrate, don't use too many ISR Timers if not absolutely necessary
   // You can use up to 16 timer for each ISR_Timer
@@ -476,7 +460,7 @@ void setup()
 
 ### Example [ISR_16_Timers_Array_Complex](examples/ISR_16_Timers_Array_Complex)
 
-https://github.com/khoih-prog/ATmega_TimerInterrupt/blob/5fae6b57d6e835aed11b84c5d087d67c52d98519/examples/ISR_16_Timers_Array_Complex/ISR_16_Timers_Array_Complex.ino#L25-L392
+https://github.com/khoih-prog/ATmega_TimerInterrupt/blob/f3b27af3eba6de4dd56ae49f04e4a8f8c3b18f9d/examples/ISR_16_Timers_Array_Complex/ISR_16_Timers_Array_Complex.ino#L25-L377
 
 ---
 ---
@@ -530,7 +514,8 @@ Submit issues to: [ATmega_TimerInterrupt issues](https://github.com/khoih-prog/A
  4. Fix some bugs in v1.0.0
  5. Add more examples.
  6. Add support to **ATmega164(A/P), ATmega324(A/P/PA/PB), ATmega644(A/P), ATmega1284(P)**-based boards
-
+ 7. Optimize code in examples
+ 8. Fix bug possibly causing system crash when using `_TIMERINTERRUPT_LOGLEVEL_ > 0` 
 
 ---
 ---
@@ -539,11 +524,13 @@ Submit issues to: [ATmega_TimerInterrupt issues](https://github.com/khoih-prog/A
 
 Many thanks for everyone for bug reporting, new feature suggesting, testing and contributing to the development of this library. Especially to these people who have directly or indirectly contributed to this [ATmega_TimerInterrupt library](https://github.com/khoih-prog/ATmega_TimerInterrupt)
 
-1. Thanks to [LaurentR59](https://github.com/LaurentR59) to request the enhamcement [Support for DX CORE CPU and MightyCORE CPU possible? #8](https://github.com/khoih-prog/TimerInterrupt_Generic/issues/8) leading to this new library.
+1. Thanks to good work of [Hans](https://github.com/MCUdude) for the [MightyCore](https://github.com/MCUdude/MightyCore)
+2. Thanks to [LaurentR59](https://github.com/LaurentR59) to request the enhancement [Support for DX CORE CPU and MightyCORE CPU possible? #8](https://github.com/khoih-prog/TimerInterrupt_Generic/issues/8) leading to this new library.
 
 
 <table>
   <tr>
+    <td align="center"><a href="https://github.com/MCUdude"><img src="https://github.com/MCUdude.png" width="100px;" alt="MCUdude"/><br /><sub><b>⭐️⭐️Hans</b></sub></a><br /></td>
     <td align="center"><a href="https://github.com/LaurentR59"><img src="https://github.com/LaurentR59.png" width="100px;" alt="LaurentR59"/><br /><sub><b>LaurentR59</b></sub></a><br /></td>
   </tr> 
 </table>
