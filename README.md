@@ -6,8 +6,11 @@
 [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](#Contributing)
 [![GitHub issues](https://img.shields.io/github/issues/khoih-prog/ATmega_TimerInterrupt.svg)](http://github.com/khoih-prog/ATmega_TimerInterrupt/issues)
 
+<
 <a href="https://www.buymeacoffee.com/khoihprog6" title="Donate to my libraries using BuyMeACoffee"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Donate to my libraries using BuyMeACoffee" style="height: 50px !important;width: 181px !important;" ></a>
 <a href="https://www.buymeacoffee.com/khoihprog6" title="Donate to my libraries using BuyMeACoffee"><img src="https://img.shields.io/badge/buy%20me%20a%20coffee-donate-orange.svg?logo=buy-me-a-coffee&logoColor=FFDD00" style="height: 20px !important;width: 200px !important;" ></a>
+<a href="https://profile-counter.glitch.me/khoih-prog/count.svg" title="Total khoih-prog Visitor count"><img src="https://profile-counter.glitch.me/khoih-prog/count.svg" style="height: 30px;width: 200px;"></a>
+<a href="https://profile-counter.glitch.me/khoih-prog-ATmega_TimerInterrupt/count.svg" title="ATmega_TimerInterrupt Visitor count"><img src="https://profile-counter.glitch.me/khoih-prog-ATmega_TimerInterrupt/count.svg" style="height: 30px;width: 200px;"></a>
 
 ---
 ---
@@ -89,23 +92,23 @@ Being ISR-based timers, their executions are not blocked by bad-behaving functio
 This non-being-blocked important feature is absolutely necessary for mission-critical tasks.
 
 You'll see blynkTimer Software is blocked while system is connecting to WiFi / Internet / Blynk, as well as by blocking task 
-in loop(), using delay() function as an example. The elapsed time then is very unaccurate
+in `loop()`, using `delay()` function as an example. The elapsed time then is very unaccurate
 
 ### Why using ISR-based Hardware Timer Interrupt is better
 
-Imagine you have a system with a **mission-critical function**, measuring water level and control the sump pump or doing something much more important. You normally use a **software timer to poll**, or even place the function in loop(). But what if another function is blocking the loop() or setup().
+Imagine you have a system with a **mission-critical** function, measuring water level and control the sump pump or doing something much more important. You normally use a software timer to poll, or even place the function in `loop()`. But what if another function is **blocking** the `loop()` or `setup()`.
 
-**So your function might not be executed, and the result would be disastrous.**
+So your function **might not be executed, and the result would be disastrous.**
 
 You'd prefer to have your function called, no matter what happening with other functions (busy loop, bug, etc.).
 
-The correct choice is to use a **Hardware Timer with Interrupt** to call your function.
+The correct choice is to use a Hardware Timer with **Interrupt** to call your function.
 
-**These hardware timers, using interrupt**, still work even if other functions are blocking. Moreover, they are **much more precise** (certainly depending on clock frequency accuracy) than other software timers using millis() or micros(). That's necessary if you need to measure some data requiring better accuracy.
+These hardware timers, using interrupt, still work even if other functions are blocking. Moreover, they are much more **precise** (certainly depending on clock frequency accuracy) than other software timers using `millis()` or `micros()`. That's necessary if you need to measure some data requiring better accuracy.
 
-Functions using normal software timers, relying on loop() and calling millis(), won't work if the loop() or setup() is blocked by certain operation. For example, certain function is blocking while it's connecting to WiFi or some services.
+Functions using normal software timers, relying on `loop()` and calling `millis()`, won't work if the `loop()` or `setup()` is blocked by certain operation. For example, certain function is blocking while it's connecting to WiFi or some services.
 
-The catch is your function is now part of an ISR (Interrupt Service Routine), and must be lean / mean, and follow certain rules. More to read on:
+The catch is **your function is now part of an ISR (Interrupt Service Routine), and must be lean / mean, and follow certain rules.** More to read on:
 
 [**HOWTO Attach Interrupt**](https://www.arduino.cc/reference/en/language/functions/external-interrupts/attachinterrupt/)
 
@@ -169,14 +172,14 @@ The current library implementation, using `xyz-Impl.h` instead of standard `xyz.
 
 You can use
 
-```
+```cpp
 #include <ATmega_TimerInterrupt.hpp>	//https://github.com/khoih-prog/ATmega_TimerInterrupt
 #include <ISR_Timer.hpp>              //https://github.com/khoih-prog/ATmega_TimerInterrupt
 ```
 
 in many files. But be sure to use the following `#include <ATmega_TimerInterrupt.h>` or `#include <ISR_Timer.h>` **in just 1 `.h`, `.cpp` or `.ino` file**, which must **not be included in any other file**, to avoid `Multiple Definitions` Linker Error
 
-```
+```cpp
 // To be included only in main(), .ino with setup() to avoid `Multiple Definitions` Linker Error
 #include "ATmega_TimerInterrupt.h"		//https://github.com/khoih-prog/ATmega_TimerInterrupt
 
@@ -237,7 +240,7 @@ Before using any Timer, you have to make sure the Timer has not been used by any
 
 ### 1.1 Init Hardware Timer
 
-```
+```cpp
 // Select the timers you're using, here ITimer1
 #define USE_TIMER_1     true
 #define USE_TIMER_2     false
@@ -252,7 +255,7 @@ ITimer1.init();
 
 Use one of these functions with **interval in unsigned long milliseconds**
 
-```
+```cpp
 // interval (in ms) and duration (in milliseconds). Duration = 0 or not specified => run indefinitely
 template<typename TArg> bool setInterval(unsigned long interval, void (*callback)(TArg), TArg params, unsigned long duration = 0);
 
@@ -268,7 +271,7 @@ bool attachInterruptInterval(unsigned long interval, timer_callback callback, un
 
 as follows
 
-```
+```cpp
 void TimerHandler()
 {
   // Doing something here inside ISR
@@ -292,7 +295,7 @@ void setup()
 
 Use one of these functions with **frequency in float Hz**
 
-```
+```cpp
 // frequency (in hertz) and duration (in milliseconds). Duration = 0 or not specified => run indefinitely
 bool setFrequency(float frequency, timer_callback_p callback, /* void* */ uint32_t params, unsigned long duration = 0);
 
@@ -308,7 +311,7 @@ bool attachInterrupt(float frequency, timer_callback callback, unsigned long dur
 
 as follows
 
-```
+```cpp
 void TimerHandler()
 {
   // Doing something here inside ISR
@@ -337,7 +340,7 @@ The 16 ISR_based Timers, designed for long timer intervals, only support using *
 
 ### 2.2 Init Hardware Timer and ISR-based Timer
 
-```
+```cpp
 #define USE_TIMER_1     true
 
 // Select just 1 TIMER to be true
@@ -374,7 +377,7 @@ ISR_Timer ISR_timer;
 
 ### 2.3 Set Hardware Timer Interval and attach Timer Interrupt Handler functions
 
-```
+```cpp
 void TimerHandler()
 {
   ISR_timer.run();
